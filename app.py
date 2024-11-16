@@ -2,6 +2,38 @@
 import streamlit as st
 import joblib
 import pandas as pd
+from flask import Flask, request, jsonify
+import pickle
+
+# Flask ilovasi
+app = Flask(__name__)
+
+# Modelni yuklash
+with open("cluster_model.pkl", "rb") as file:
+    model = pickle.load(file)
+
+@app.route("/", methods=["GET"])
+def home():
+    return "Model deployed successfully! Use the /predict endpoint for predictions."
+
+@app.route("/predict", methods=["POST"])
+def predict():
+    try:
+        # JSON formatida kelgan ma'lumotlarni o'qiymiz
+        data = request.json
+        features = data.get("features")
+
+        if features is None:
+            return jsonify({"error": "Features are missing in the request!"}), 400
+
+        # Modeldan bashorat olish
+        prediction = model.predict([features])
+        return jsonify({"prediction": prediction.tolist()})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+if __name__ == "__main__":
+    app.run(debug=True)
 
 # Load the trained model
 model_path = "market_research_cluster_model.pkl"
