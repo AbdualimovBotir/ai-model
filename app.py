@@ -1,26 +1,45 @@
 import streamlit as st
+import pandas as pd
 import pickle
-import numpy as np
 
-# Modelni yuklash
-with open('cluster_model.pkl', 'rb') as file:
-    model = pickle.load(file)
+# Sarlavha
+st.title("Clustering Model App")
+st.write("Ushbu ilova klasterlash modelidan foydalanib prognozlarni ko'rsatadi.")
 
-# Streamlit interfeysi
-st.title("KMeans Cluster Model Deployment")
-st.write("Modelga ma'lumot kiritib, klasterni aniqlang:")
+# .pkl faylni yuklash
+@st.cache_resource
+def load_model():
+    with open('cluster_model.pkl', 'rb') as file:
+        model = pickle.load(file)
+    return model
 
-# Feature kiritish maydonlari
-inputs = []
-for i in range(4):  # 4 ta feature uchun
-    value = st.number_input(f"Feature {i+1}", step=0.01, format="%.2f")
-    inputs.append(value)
+model = load_model()
 
-# Modelga kirish
-if st.button("Predict Cluster"):
-    try:
-        input_array = np.array(inputs).reshape(1, -1)
-        prediction = model.predict(input_array)
-        st.success(f"Model cluster bashorati: {prediction[0]}")
-    except Exception as e:
-        st.error(f"Xatolik yuz berdi: {e}")
+# CSV faylni yuklash
+uploaded_file = st.file_uploader("Upload your CSV file for clustering", type=["csv"])
+
+if uploaded_file is not None:
+    data = pd.read_csv(uploaded_file)
+    st.subheader("Uploaded Data")
+    st.write(data.head())
+
+    # Klasterlashni bajarish
+    if st.button("Run Clustering"):
+        try:
+            predictions = model.predict(data)
+            data['Cluster'] = predictions
+            st.subheader("Clustered Data")
+            st.write(data)
+            
+            # CSV yuklab olish uchun link
+            csv = data.to_csv(index=False).encode('utf-8')
+            st.download_button(
+                label="Download Clustered Data as CSV",
+                data=csv,
+                file_name="clustered_data.csv",
+                mime="text/csv",
+            )
+        except Exception as e:
+            st.error(f"Model bilan ishlashda xatolik yuz berdi: {e}")
+else:
+    st.info("Iltimos, CSV faylni yuklang.")
