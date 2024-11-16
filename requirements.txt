@@ -1,4 +1,4 @@
-# /mnt/data/requirements.txt
 streamlit
-joblib
+scikit-learn
 pandas
+joblib
