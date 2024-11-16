@@ -1,63 +1,31 @@
-
 import streamlit as st
-import joblib
-import pandas as pd
-from flask import Flask, request, jsonify
 import pickle
 
-# Flask ilovasi
-app = Flask(__name__)
-
 # Modelni yuklash
-with open("cluster_model.pkl", "rb") as file:
-    model = pickle.load(file)
+@st.cache_resource
+def load_model():
+    with open("cluster_model.pkl", "rb") as file:
+        model = pickle.load(file)
+    return model
 
-@app.route("/", methods=["GET"])
-def home():
-    return "Model deployed successfully! Use the /predict endpoint for predictions."
+model = load_model()
 
-@app.route("/predict", methods=["POST"])
-def predict():
+# Streamlit interfeysi
+st.title("Model Deployment with Streamlit")
+
+# Foydalanuvchi ma'lumotlarini kiritish
+st.write("Enter the features for prediction:")
+
+# Input maydonlarini yaratish
+num_features = st.number_input("Number of features", min_value=1, value=3)
+features = []
+for i in range(num_features):
+    feature_value = st.number_input(f"Feature {i+1}", value=0.0)
+    features.append(feature_value)
+
+if st.button("Predict"):
     try:
-        # JSON formatida kelgan ma'lumotlarni o'qiymiz
-        data = request.json
-        features = data.get("features")
-
-        if features is None:
-            return jsonify({"error": "Features are missing in the request!"}), 400
-
-        # Modeldan bashorat olish
         prediction = model.predict([features])
-        return jsonify({"prediction": prediction.tolist()})
+        st.success(f"Prediction: {prediction[0]}")
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
-
-if __name__ == "__main__":
-    app.run(debug=True)
-
-# Load the trained model
-model_path = "market_research_cluster_model.pkl"
-kmeans = joblib.load(model_path)
-
-st.title("Market Research Cluster Creation Tool")
-
-st.write("Bu ilova mijozlarni segmentlash uchun KMeans modelidan foydalanadi.")
-
-# Input form for user data
-with st.form(key="user_input"):
-    age = st.number_input("Age", min_value=0, max_value=100, step=1)
-    income = st.number_input("Annual Income (k$)", min_value=0, step=1)
-    spending_score = st.number_input("Spending Score (1-100)", min_value=0, max_value=100, step=1)
-    submit = st.form_submit_button("Predict Cluster")
-
-# If form is submitted
-if submit:
-    user_data = pd.DataFrame({
-        'Age': [age],
-        'Annual Income (k$)': [income],
-        'Spending Score (1-100)': [spending_score]
-    })
-    cluster = kmeans.predict(user_data)[0]
-    st.success(f"Ushbu mijoz {cluster} klasterga tegishli!")
-
-st.write("Model bilan ishlash uchun .pkl fayli yuklangan bo'lishi kerak.")
+        st.error(f"An error occurred: {e}")
