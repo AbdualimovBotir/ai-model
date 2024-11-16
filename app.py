@@ -6,7 +6,7 @@ import pickle
 st.title("Clustering Model App")
 st.write("Ushbu ilova klasterlash modelidan foydalanib prognozlarni ko'rsatadi.")
 
-# .pkl faylni yuklash
+# Modelni yuklash
 @st.cache_resource
 def load_model():
     with open('cluster_model.pkl', 'rb') as file:
