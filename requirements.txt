@@ -1,0 +1,4 @@
+# /mnt/data/requirements.txt
+streamlit
+joblib
+pandas
