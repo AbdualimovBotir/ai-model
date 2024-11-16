@@ -1,10 +1,7 @@
 import streamlit as st
 import pandas as pd
 import pickle
-
-# Sarlavha
-st.title("Clustering Model App")
-st.write("Ushbu ilova yuklangan ma'lumotlarni klasterlash uchun foydalaniladi.")
+from sklearn.cluster import KMeans
 
 # Modelni yuklash
 @st.cache_resource
@@ -14,6 +11,10 @@ def load_model():
     return model
 
 model = load_model()
+
+# Sarlavha
+st.title("Clustering Model App")
+st.write("Ushbu ilova yuklangan ma'lumotlarni klasterlash uchun foydalaniladi.")
 
 # CSV faylni yuklash
 uploaded_file = st.file_uploader("CSV faylni yuklang", type=["csv"])
