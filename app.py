@@ -1,31 +1,26 @@
 import streamlit as st
 import pickle
+import numpy as np
 
 # Modelni yuklash
-@st.cache_resource
-def load_model():
-    with open("cluster_model.pkl", "rb") as file:
-        model = pickle.load(file)
-    return model
-
-model = load_model()
+with open('cluster_model.pkl', 'rb') as file:
+    model = pickle.load(file)
 
 # Streamlit interfeysi
-st.title("Model Deployment with Streamlit")
+st.title("KMeans Cluster Model Deployment")
+st.write("Modelga ma'lumot kiritib, klasterni aniqlang:")
 
-# Foydalanuvchi ma'lumotlarini kiritish
-st.write("Enter the features for prediction:")
+# Feature kiritish maydonlari
+inputs = []
+for i in range(4):  # 4 ta feature uchun
+    value = st.number_input(f"Feature {i+1}", step=0.01, format="%.2f")
+    inputs.append(value)
 
-# Input maydonlarini yaratish
-num_features = st.number_input("Number of features", min_value=1, value=3)
-features = []
-for i in range(num_features):
-    feature_value = st.number_input(f"Feature {i+1}", value=0.0)
-    features.append(feature_value)
-
-if st.button("Predict"):
+# Modelga kirish
+if st.button("Predict Cluster"):
     try:
-        prediction = model.predict([features])
-        st.success(f"Prediction: {prediction[0]}")
+        input_array = np.array(inputs).reshape(1, -1)
+        prediction = model.predict(input_array)
+        st.success(f"Model cluster bashorati: {prediction[0]}")
     except Exception as e:
-        st.error(f"An error occurred: {e}")
+        st.error(f"Xatolik yuz berdi: {e}")
