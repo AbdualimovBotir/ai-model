@@ -4,7 +4,7 @@ import pickle
 
 # Sarlavha
 st.title("Clustering Model App")
-st.write("Ushbu ilova klasterlash modelidan foydalanib prognozlarni ko'rsatadi.")
+st.write("Ushbu ilova yuklangan ma'lumotlarni klasterlash uchun foydalaniladi.")
 
 # Modelni yuklash
 @st.cache_resource
@@ -16,23 +16,31 @@ def load_model():
 model = load_model()
 
 # CSV faylni yuklash
-uploaded_file = st.file_uploader("Upload your CSV file for clustering", type=["csv"])
+uploaded_file = st.file_uploader("CSV faylni yuklang", type=["csv"])
 
-if uploaded_file is not None:
+if uploaded_file:
     data = pd.read_csv(uploaded_file)
-    st.subheader("Uploaded Data")
+    st.subheader("Yuklangan Ma'lumotlar")
     st.write(data.head())
+
+    # Kiritilgan ustunlarni tekshirish
+    st.write("Eslatma: Model kiritilgan ma'lumot ustunlari o'qitilgan ma'lumotlar ustunlariga mos kelishi kerak.")
 
     # Klasterlashni bajarish
     if st.button("Run Clustering"):
         try:
-            predictions = model.predict(data)
-            data['Cluster'] = predictions
-            st.subheader("Clustered Data")
-            st.write(data)
+            # NaN qiymatlarni tozalash
+            data_cleaned = data.dropna()
             
-            # CSV yuklab olish uchun link
-            csv = data.to_csv(index=False).encode('utf-8')
+            # Klasterlash
+            predictions = model.predict(data_cleaned)
+            data_cleaned['Cluster'] = predictions
+            
+            st.subheader("Klasterlangan Ma'lumotlar")
+            st.write(data_cleaned)
+            
+            # CSV formatda yuklash uchun tugma
+            csv = data_cleaned.to_csv(index=False).encode('utf-8')
             st.download_button(
                 label="Download Clustered Data as CSV",
                 data=csv,
@@ -40,6 +48,6 @@ if uploaded_file is not None:
                 mime="text/csv",
             )
         except Exception as e:
-            st.error(f"Model bilan ishlashda xatolik yuz berdi: {e}")
+            st.error(f"Xatolik yuz berdi: {e}")
 else:
-    st.info("Iltimos, CSV faylni yuklang.")
+    st.info("Iltimos, CSV fayl yuklang.")
